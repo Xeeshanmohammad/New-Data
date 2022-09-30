@@ -2,16 +2,7 @@ const User = require('../Models/userModel')
 const express = require('express')
 const router = express.Router()
 const bcrypt = require('bcryptjs')
-const {StatusCodes} = require('http-status-codes')
-const jwt = require('jsonwebtoken')
-
-const {
-  attachCookiesToResponse,
-  createTokenUser,
-} = require('../utils/jwt');
-
-const crypto = require('crypto')
-
+const auth = require('../Middleware/Athentications')
 
 router.post('/signup', async(req,res)=>{
     const {name,email,password} = req.body
@@ -53,7 +44,7 @@ router.get('/', async(req,res)=>{
     return res.status(200).json({users})
 })
 
-router.post('/login', async(req,res)=>{
+router.post('/login', auth, async(req,res)=>{
     const { email, password } = req.body;
   
     // checking if user has given password and email both

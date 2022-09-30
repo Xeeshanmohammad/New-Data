@@ -1,12 +1,10 @@
-const UnauthenticatedError = require('../Error/authenticate')
-
 const jwt = require('jsonwebtoken')
 
 const authenticationMiddleware = (req,res,next)=>{
     const authHeader = req.headers.authorization
 
     if (!authHeader || !authHeader.startsWith('Bearer')) {
-        throw new UnauthenticatedError('No token provided')
+        throw new Error('No token provided')
     }
     const token =  authHeader &&  authHeader.split(' ')[1]
     try {
@@ -16,7 +14,7 @@ const authenticationMiddleware = (req,res,next)=>{
         next()
 
     } catch (error) {
-        throw new UnauthenticatedError('Not authorized to access this route')
+        throw new Error('Not authorized to access this route')
     }
 }
 
