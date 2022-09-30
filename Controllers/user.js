@@ -54,57 +54,48 @@ router.get('/', async(req,res)=>{
 })
 
 router.post('/login', async(req,res)=>{
-const {email, password} = req.body
-let existingUser;
-try {
-    existingUser = await User.findOne({email})
-} catch (error) {
-  return  console.log(error);
-}
-if(!existingUser){
-  return  res.status(404).json({message:"User cannot found"})
-}
-const isPasswordMatch = await bcrypt.compareSync(password, existingUser.password)
-if(!isPasswordMatch){
-   return res.status(404).json({message:"Invalid Credentials"})
-}
-// const tokenUser = createTokenUser(existingUser);
-
-  // // create refresh token
-  // let refreshToken = '';
-  // // check for existing token
-  // const existingToken = await Token.findOne({ existingUser: existingUser._id });
-
-  // if (existingToken) {
-  //   const { isValid } = existingToken;
-  //   if (!isValid) {
-  //     throw new CustomError.UnauthenticatedError('Invalid Credentials');
-  //   }
-  //   refreshToken = existingToken.refreshToken;
-  //   attachCookiesToResponse({ res, existingUser: tokenUser, refreshToken });
-  //   res.status(StatusCodes.OK).json({ existingUser: tokenUser });
-  //   return;
-  // }
-
-  // refreshToken = crypto.randomBytes(40).toString('hex');
-  // const userAgent = req.headers['user-agent'];
-  // const ip = req.ip;
-  // const userToken = { refreshToken, ip, userAgent, user: existingUser._id };
-
-  // await Token.create(userToken);
-
-  // attachCookiesToResponse({ res, existingUser: tokenUser, refreshToken });
-   //just for demo, normally provided by DB!!!!
-   const id = new Date().getDate()
-
-   // try to keep payload small, better experience for user
-   // just for demo, in production use long, complex and unguessable string value!!!!!!!!!
-   const token = jwt.sign({ id, email }, process.env.JWT_SECRET, {
-     expiresIn: 60*60*1000,
-   })
-
- return res.status(StatusCodes.OK).json({ message:"Login Successful",token,existingUser })
-})
+    const { email, password } = req.body;
+  
+    // checking if user has given password and email both
+  
+    if (!email || !password ) {
+      res.status(400).json({
+        success: false,
+        message:"Please Enter Email & Password",
+      })
+    }
+  try {
+  const user = await User.findOne({ "email":req.body.email});
+    if (user) {
+      const isPasswordMatched = await bcrypt.compare(req.body.password, user.password);
+    if (!isPasswordMatched) {
+      res.status(401).json({
+        success: false,
+        message:"Invalid email or password",
+      })
+    }
+    else{
+    res.cookie("user",user._id,{
+      httpOnly:true,
+      maxAge:1000*60*60 //1hr
+    });
+    res.status(200).json({
+      success: true,
+      message:"logged in succesfully",
+    })}
+    }
+    else{
+      res.status(401).json({
+        success: false,
+        message:"Invalid email or password ",
+      })
+    }
+  } catch (error) {
+    res.status(401).json({
+      message:"Oops! Something went wrong",
+    })
+  }
+  });
 
 
 module.exports = router
